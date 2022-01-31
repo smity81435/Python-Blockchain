@@ -1,4 +1,4 @@
-# Python Blockchain CryptoCurrency
+# Python Blockchain Cryptocurrency
 
 Simple Python Blockchain project for demonstrating the concepts of blockchain secure data storage, as well as cryptocurrency.
 
