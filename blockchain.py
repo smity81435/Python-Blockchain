@@ -72,6 +72,7 @@ def add_transaction(recipient, sender=owner, amount=1.0):
         :recipient: Receiver of the coins\n
         :amount: Amount of coins (default[1.0])
     """
+
     transaction = {
         'sender': sender,
         'recipient': recipient,
@@ -89,6 +90,7 @@ def add_transaction(recipient, sender=owner, amount=1.0):
 
 def mine_block():
     ''' Creates a new block '''
+
     global open_transactions
     last_block = blockchain[-1]
     hashed_block = hash_block(last_block)
@@ -136,6 +138,7 @@ def print_chain():
 
 def verify_chain():
     ''' Verfies the integrity of the chain '''
+
     for (index, block) in enumerate(blockchain):
         if index == 0:
             continue
@@ -146,6 +149,7 @@ def verify_chain():
 
 def print_participants():
     '''Prints a list of participants.'''
+
     print('\n')
     print('PARTICIPANTS: ')
     print('-'*10)
@@ -157,12 +161,15 @@ def print_participants():
 
 def clean_print(value):
     '''Prints a value with formatting'''
+
     print('-'*10)
     print(value)
     print('-'*10)
 
 
 def verify_transactions():
+    ''' Verifies all transactions in the unmined block.'''
+
     return all([verify_transaction(tx) for tx in open_transactions])
 
 
