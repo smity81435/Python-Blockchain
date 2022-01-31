@@ -98,12 +98,12 @@ def mine_block():
         'recipient': owner,
         'amount': MINIMG_REWARD
     }
-
-    open_transactions.append(reward_transaction)
+    copied_transactions = open_transactions[:]
+    copied_transactions.append(reward_transaction)
     block = {
         'previous_hash': hashed_block,
         'index': len(blockchain),
-        'transactions': open_transactions
+        'transactions': copied_transactions
     }
 
     blockchain.append(block)
@@ -114,6 +114,7 @@ def mine_block():
 
 def get_transaction_details():
     """ Returns the new user input transaction amount as a float. """
+
     recipient = input("Name of the recipient: ")
     amount = float(input("Amount of coins transferred: "))
     return (recipient, amount)
@@ -161,6 +162,10 @@ def clean_print(value):
     print('-'*10)
 
 
+def verify_transactions():
+    return all([verify_transaction(tx) for tx in open_transactions])
+
+
 def main():
     waiting_for_input = True
     while waiting_for_input:
@@ -170,8 +175,9 @@ def main():
         print('2: Mine a new block')
         print('3: Output the blockchain')
         print('4: Output the participants')
-        print('5: Simulate Hack')
-        print('6: Quit')
+        print('5: Check transaction validity')
+        print('6: Simulate Hack')
+        print('7: Quit')
         print('-'*10)
 
         choice = get_user_choice()
@@ -193,6 +199,11 @@ def main():
         elif choice == 4:
             print_participants()
         elif choice == 5:
+            if verify_transactions():
+                clean_print('All transactions are valid')
+            else:
+                clean_print('Invalid transaction found')
+        elif choice == 6:
             # Hack the blockchain
             if len(blockchain) >= 1:
                 blockchain[0] = {
@@ -200,7 +211,7 @@ def main():
                     'index': 0,
                     'transactions': [{'sender': 'Chris', 'recipient': 'Doug', 'amount': 500.0}]
                 }
-        elif choice == 6:
+        elif choice == 7:
             waiting_for_input = False
         else:
             clean_print('Unrecognized command!')
