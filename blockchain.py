@@ -33,9 +33,6 @@ def get_balance(participant):
 
     tx_sender.append(open_tx_sender)
 
-    print('TX SENDER')
-    print(tx_sender)
-
     amt_sent = 0.0
     for tx in tx_sender:
         if len(tx) >= 1:
