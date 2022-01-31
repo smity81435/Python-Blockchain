@@ -15,6 +15,9 @@ participants = {'Douglas'}
 
 
 def hash_block(block):
+    '''Hashes a given block. \n
+    :block: Block to be hashed {previous_hash:str, index: int, transactions:[transaction]}
+    '''
     return '-'.join([str(block[key]) for key in block])
 
 
@@ -29,6 +32,9 @@ def get_balance(participant):
                       for tx in open_transactions if tx['sender'] == participant]
 
     tx_sender.append(open_tx_sender)
+
+    print('TX SENDER')
+    print(tx_sender)
 
     amt_sent = 0.0
     for tx in tx_sender:
@@ -55,6 +61,8 @@ def get_last_value():
 
 
 def verify_transaction(transaction):
+    '''Verifies the sender has enough in wallet to make transaction.\n
+    :transaction: Transaction details {sender: str, recipient: str, amount: float}'''
     sender_balance = get_balance(transaction['sender'])
     return sender_balance >= transaction['amount']
 
@@ -84,6 +92,7 @@ def add_transaction(recipient, sender=owner, amount=1.0):
 
 def mine_block():
     ''' Creates a new block '''
+    global open_transactions
     last_block = blockchain[-1]
     hashed_block = hash_block(last_block)
 
@@ -94,7 +103,6 @@ def mine_block():
     }
 
     open_transactions.append(reward_transaction)
-
     block = {
         'previous_hash': hashed_block,
         'index': len(blockchain),
@@ -102,14 +110,16 @@ def mine_block():
     }
 
     blockchain.append(block)
+    open_transactions = []
+
     return True
 
 
 def get_transaction_details():
     """ Returns the new user input transaction amount as a float. """
-    tx_recipient = input("Name of the recipient: ")
-    tx_amount = float(input("Amount of coins transferred: "))
-    return (tx_recipient, tx_amount)
+    recipient = input("Name of the recipient: ")
+    amount = float(input("Amount of coins transferred: "))
+    return (recipient, amount)
 
 
 def get_user_choice():
@@ -137,15 +147,21 @@ def verify_chain():
 
 
 def print_participants():
+    '''Prints a list of participants.'''
     print('\n')
     print('PARTICIPANTS: ')
     print('-'*10)
-
     for name in participants:
         print('Name: '+name)
-
     print('-'*10)
     print('\n')
+
+
+def clean_print(value):
+    '''Prints a value with formatting'''
+    print('-'*10)
+    print(value)
+    print('-'*10)
 
 
 def main():
@@ -166,14 +182,14 @@ def main():
             tx_data = get_transaction_details()
             recipient, amount = tx_data
             if add_transaction(recipient, amount=amount):
-                print('-'*10)
-                print('Transaction Added to Blockchain!!')
-                print('-'*10)
+                clean_print('Transaction Added to Blockchain!!')
             else:
-                print('Transaction Failed')
+                clean_print('Transaction Failed')
         elif choice == 2:
             if mine_block():
-                open_transactions = []
+                clean_print("Block Mined!")
+            else:
+                clean_print("Unable to mine block")
         elif choice == 3:
             # print the chain
             print_chain()
@@ -190,16 +206,16 @@ def main():
         elif choice == 6:
             waiting_for_input = False
         else:
-            print('-'*10)
-            print('Unrecognized command!')
-            print('-'*10)
+            clean_print('Unrecognized command!')
         if not verify_chain():
-            print('Invalid Blockchain!')
+            clean_print('Invalid Blockchain!')
             break
+        print('*'*20)
         print('Funds Available: ')
         print(get_balance('Douglas'))
+        print('*'*20)
     else:
-        print('Ending program.')
+        clean_print('Ending program.')
 
 
 main()
