@@ -1,5 +1,9 @@
 # DOUGLAS SMITH
 # Python Blockchain Example
+from functools import reduce
+import hashlib as hl
+import json
+
 
 MINIMG_REWARD = 10
 GENESIS_BLOCK = {
@@ -18,7 +22,7 @@ def hash_block(block):
     '''Hashes a given block. \n
     :block: Block to be hashed {previous_hash:str, index: int, transactions:[transaction]}
     '''
-    return '-'.join([str(block[key]) for key in block])
+    return hl.sha256(json.dumps(block).encode()).hexdigest()
 
 
 def get_balance(participant):
@@ -33,18 +37,14 @@ def get_balance(participant):
 
     tx_sender.append(open_tx_sender)
 
-    amt_sent = 0.0
-    for tx in tx_sender:
-        if len(tx) >= 1:
-            amt_sent += tx[0]
+    amt_sent = reduce(
+        lambda tx_sum, tx_amt: tx_sum + sum(tx_amt) if len(tx_amt) > 0 else tx_sum+0, tx_sender, 0)
 
     tx_recipient = [[tx['amount'] for tx in block['transactions']
                      if tx['recipient'] == participant] for block in blockchain]
 
-    amt_rcvd = 0.0
-    for tx in tx_recipient:
-        if len(tx) > 0:
-            amt_rcvd += tx[0]
+    amt_rcvd = reduce(
+        lambda tx_sum, tx_amt: tx_sum + sum(tx_amt) if len(tx_amt) > 0 else tx_sum+0, tx_recipient, 0)
 
     return amt_rcvd - amt_sent
 
@@ -94,6 +94,7 @@ def mine_block():
     global open_transactions
     last_block = blockchain[-1]
     hashed_block = hash_block(last_block)
+    print(hashed_block)
 
     reward_transaction = {
         'sender': 'MINING',
@@ -227,7 +228,8 @@ def main():
             break
         print('*'*20)
         print('Funds Available: ')
-        print(get_balance('Douglas'))
+        print('Balance of {}: {:6.2f}'.format(
+            'Douglas', get_balance('Douglas')))
         print('*'*20)
     else:
         clean_print('Ending program.')
