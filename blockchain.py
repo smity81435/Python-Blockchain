@@ -2,8 +2,9 @@
 # Python Blockchain Example
 from functools import reduce
 import hashlib as hl
-import json
 from collections import OrderedDict
+
+from hash_util import hash_string_256, hash_block
 
 MINING_REWARD = 10
 GENESIS_BLOCK = {
@@ -19,18 +20,11 @@ owner = 'Douglas'
 participants = {'Douglas'}
 
 
-def hash_block(block):
-    '''Hashes a given block. \n
-    :block: Block to be hashed {previous_hash:str, index: int, transactions:[transaction]}
-    '''
-    return hl.sha256(json.dumps(block, sort_keys=True).encode()).hexdigest()
-
-
 def valid_proof(transactions, last_hash, proof):
 
     guess = f'{transactions}{last_hash}{proof}'
     encoded_guess = guess.encode()
-    guess_hash = hl.sha256(encoded_guess).hexdigest()
+    guess_hash = hash_string_256(encoded_guess)
     print(guess_hash)
     return guess_hash[0:2] == '00'
 
