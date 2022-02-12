@@ -9,7 +9,8 @@ MINIMG_REWARD = 10
 GENESIS_BLOCK = {
     'previous_hash': '',
     'index': 0,
-    'transactions': []
+    'transactions': [],
+    'proof': 100
 }
 
 blockchain = [GENESIS_BLOCK]
@@ -23,6 +24,24 @@ def hash_block(block):
     :block: Block to be hashed {previous_hash:str, index: int, transactions:[transaction]}
     '''
     return hl.sha256(json.dumps(block).encode()).hexdigest()
+
+
+def valid_proof(transactions, last_hash, proof):
+
+    guess = f'{transactions}{last_hash}{proof}'
+    encoded_guess = guess.encode()
+    guess_hash = hl.sha256(encoded_guess).hexdigest()
+    print(guess_hash)
+    return guess_hash[0:2] == '00'
+
+
+def proof_of_work():
+    last_block = blockchain[-1]
+    last_hash = hash_block(last_block)
+    proof = 0
+    while not valid_proof(open_transactions, last_hash, proof):
+        proof += 1
+    return proof
 
 
 def get_balance(participant):
@@ -94,19 +113,23 @@ def mine_block():
     global open_transactions
     last_block = blockchain[-1]
     hashed_block = hash_block(last_block)
-    print(hashed_block)
+
+    proof = proof_of_work()
 
     reward_transaction = {
         'sender': 'MINING',
         'recipient': owner,
         'amount': MINIMG_REWARD
     }
+
     copied_transactions = open_transactions[:]
     copied_transactions.append(reward_transaction)
+
     block = {
         'previous_hash': hashed_block,
         'index': len(blockchain),
-        'transactions': copied_transactions
+        'transactions': copied_transactions,
+        'proof': proof
     }
 
     blockchain.append(block)
@@ -144,6 +167,8 @@ def verify_chain():
         if index == 0:
             continue
         if block['previous_hash'] != hash_block(blockchain[index - 1]):
+            return False
+        if not valid_proof(block['transactions'][:-1], block['previous_hash'], block['proof']):
             return False
     return True
 
