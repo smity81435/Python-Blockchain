@@ -3,9 +3,9 @@
 from functools import reduce
 import hashlib as hl
 import json
+from collections import OrderedDict
 
-
-MINIMG_REWARD = 10
+MINING_REWARD = 10
 GENESIS_BLOCK = {
     'previous_hash': '',
     'index': 0,
@@ -23,7 +23,7 @@ def hash_block(block):
     '''Hashes a given block. \n
     :block: Block to be hashed {previous_hash:str, index: int, transactions:[transaction]}
     '''
-    return hl.sha256(json.dumps(block).encode()).hexdigest()
+    return hl.sha256(json.dumps(block, sort_keys=True).encode()).hexdigest()
 
 
 def valid_proof(transactions, last_hash, proof):
@@ -92,11 +92,11 @@ def add_transaction(recipient, sender=owner, amount=1.0):
         :amount: Amount of coins (default[1.0])
     """
 
-    transaction = {
-        'sender': sender,
-        'recipient': recipient,
-        'amount': amount
-    }
+    transaction = OrderedDict(
+        [('sender', sender),
+         ('recipient', recipient),
+         ('amount', amount)])
+
     if verify_transaction(transaction):
         open_transactions.append(transaction)
         participants.add(sender)
@@ -116,11 +116,9 @@ def mine_block():
 
     proof = proof_of_work()
 
-    reward_transaction = {
-        'sender': 'MINING',
-        'recipient': owner,
-        'amount': MINIMG_REWARD
-    }
+    reward_transaction = OrderedDict([('sender', 'MINING'),
+                                      ('recipient', owner),
+                                      ('amount', MINING_REWARD)])
 
     copied_transactions = open_transactions[:]
     copied_transactions.append(reward_transaction)
