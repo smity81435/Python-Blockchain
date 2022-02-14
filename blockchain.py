@@ -3,6 +3,9 @@
 from functools import reduce
 import hashlib as hl
 from collections import OrderedDict
+import json
+import pickle
+
 
 from hash_util import hash_string_256, hash_block
 
@@ -18,6 +21,49 @@ blockchain = [GENESIS_BLOCK]
 open_transactions = []
 owner = 'Douglas'
 participants = {'Douglas'}
+
+
+def load_data():
+    with open('blockchain.txt', mode='r') as f:
+        global blockchain
+        global open_transactions
+        file_content = f.readlines()
+        # file_content = pickle.load(f.read())
+        # blockchain = file_content['chain']
+        # open_transactions = file_content['ot']
+
+        updated_blockchain = []
+        for block in blockchain:
+            updated_block = {
+                'previous_hash': block['previous_hash'],
+                'index': block['index'],
+                'proof': block['proof'],
+                'transactions': [OrderedDict([('sender', tx['sender']), ('recipient', tx['recipient']), ('amount', tx['amount'])]) for tx in block['transactions']]
+            }
+            updated_blockchain.append(updated_block)
+        blockchain = updated_blockchain
+        open_transactions = json.loads(file_content[1])
+        updated_open_transactions = []
+        for tx in open_transactions:
+            updated_transaction = OrderedDict(
+                [('sender', tx['sender']), ('recipient', tx['recipient']), ('amount', tx['amount'])])
+            updated_open_transactions.append(updated_transaction)
+        open_transactions = updated_open_transactions
+
+
+load_data()
+
+
+def save_data():
+    with open('blockchain.txt', mode='w') as f:
+        # save_data = {
+        #     'chain': blockchain,
+        #     'ot': open_transactions
+        # }
+        # f.write(pickle.dumps(save_data))
+        f.write(json.dumps(blockchain))
+        f.write('\n')
+        f.write(json.dumps(open_transactions))
 
 
 def valid_proof(transactions, last_hash, proof):
@@ -95,6 +141,7 @@ def add_transaction(recipient, sender=owner, amount=1.0):
         open_transactions.append(transaction)
         participants.add(sender)
         participants.add(recipient)
+        save_data()
         return True
     else:
         print('Not enough funds!!!')
@@ -126,7 +173,6 @@ def mine_block():
 
     blockchain.append(block)
     open_transactions = []
-
     return True
 
 
@@ -216,6 +262,7 @@ def main():
         elif choice == 2:
             if mine_block():
                 clean_print("Block Mined!")
+                save_data()
             else:
                 clean_print("Unable to mine block")
         elif choice == 3:
